@@ -1229,9 +1229,9 @@ AED_REAL SpecialConditionDraw(int jday, int i)
                     TEMPdepvarwith = (lWithdrawalTemp*(MASSdepvarwith+MASSbotout)-(MASSbotout*TEMPbotout)) / MASSdepvarwith;
                     TARGETtemp = TEMPdepvarwith;
                     if (TARGETtemp > maxtemp) // check if lake temperature is lower than target temperature
-                        DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(167.1-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,1,0);
+                        DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,1,0);
                     else if (TARGETtemp < mintemp) // check if lake temperature is higher than target temperature
-                        DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(150.9-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,0,1);
+                        DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,0,1);
                     else {
                         mindifftemp = 100;
                         for (j = 0; j < NumLayers; j++) {
@@ -1241,23 +1241,23 @@ AED_REAL SpecialConditionDraw(int jday, int i)
                             if (laketemp == mindifftemp)
                                 targetlyr = j;
                         }
-                        if (Lake[targetlyr].Height >= (167.1-Base))
-                            DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(167.1-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,1,0);
-                        else if (Lake[targetlyr].Height <= (150.9-Base))
-                            DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(150.9-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
+                        if (Lake[targetlyr].Height >= (fac_range_upper-Base))
+                            DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,1,0);
+                        else if (Lake[targetlyr].Height <= (fac_range_lower-Base))
+                            DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
                         else {
                             DrawHeight = Lake[targetlyr].MeanHeight; // combine layer index with mean height
-                            if (DrawHeight <= (150.9-Base))
-                                DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(150.9-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
+                            if (DrawHeight <= (fac_range_lower-Base))
+                                DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
                             else
                                 NewDrawHeightTempdep(jday,i,idx_dep,DrawHeight,lWithdrawalTemp, maxtemp, mintemp,1,1,0,0);
                         }
                     }
                 } else {
                     if (lWithdrawalTemp > maxtemp) // check if lake temperature is lower than target temperature
-                        DrawHeight = NewDrawHeight(jday,i,idx_dep,(167.1-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,1,0);
+                        DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,1,0);
                     else if (lWithdrawalTemp < mintemp) // check if lake temperature is higher than target temperature
-                        DrawHeight = NewDrawHeight(jday,i,idx_dep,(150.9-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,0,1);
+                        DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,0,1);
                     else {
                         mindifftemp = 100;
                         for (j = 0; j < NumLayers; j++) {
@@ -1267,14 +1267,14 @@ AED_REAL SpecialConditionDraw(int jday, int i)
                             if (laketemp == mindifftemp)
                                 targetlyr = j;
                         }
-                        if (Lake[targetlyr].Height >= (167.1-Base))
-                            DrawHeight = NewDrawHeight(jday,i,idx_dep,(167.1-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,1,0);
-                        else if (Lake[targetlyr].Height <= (150.9-Base))
-                            DrawHeight = NewDrawHeight(jday,i,idx_dep,(150.9-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
+                        if (Lake[targetlyr].Height >= (fac_range_upper-Base))
+                            DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,1,0);
+                        else if (Lake[targetlyr].Height <= (fac_range_lower-Base))
+                            DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
                         else {
                             DrawHeight = Lake[targetlyr].MeanHeight; // combine layer index with mean height
-                            if (DrawHeight <= (150.9-Base))
-                                DrawHeight = NewDrawHeight(jday,i,idx_dep,(150.9-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
+                            if (DrawHeight <= (fac_range_lower-Base))
+                                DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
                             else
                                 NewDrawHeight(jday,i,idx_dep,DrawHeight,lWithdrawalTemp, maxtemp, mintemp,1,1,0,0);
                         }

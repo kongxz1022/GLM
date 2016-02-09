@@ -119,6 +119,7 @@ extern int O2critdep;
 extern int O2critdays;
 extern CLOGICAL MIXwithdraw;
 extern AED_REAL WithdrawalTemp;
+extern AED_REAL fac_range_upper, fac_range_lower;
 
 /*----------------------------------------------------------------------------*/
 

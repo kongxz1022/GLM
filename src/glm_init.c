@@ -202,7 +202,9 @@ void init_glm(int *jstart, char *outp_dir, char *outp_fn, int *nsave)
     char          **O2name         = NULL;
     int             O2idx          = 0;
     AED_REAL       *target_temp    = NULL;
-    LOGICAL        mix_withdraw;
+    LOGICAL         mix_withdraw;
+    extern AED_REAL fac_range_upper;
+    extern AED_REAL fac_range_lower;
     AED_REAL       *outl_elvs    = NULL;
     AED_REAL       *bsn_len_outl = NULL;
     AED_REAL       *bsn_wid_outl = NULL;
@@ -382,6 +384,8 @@ void init_glm(int *jstart, char *outp_dir, char *outp_fn, int *nsave)
           { "O2name",            TYPE_STR|MASK_LIST,    &O2name            },
           { "O2idx",             TYPE_INT,              &O2idx             },
           { "target_temp",       TYPE_DOUBLE|MASK_LIST, &target_temp       },
+          { "fac_range_upper",   TYPE_DOUBLE,           &fac_range_upper   },
+          { "fac_range_lower",   TYPE_DOUBLE,           &fac_range_lower   },
           { "mix_withdraw",      TYPE_BOOL,             &mix_withdraw      },
           { "flt_off_sw",        TYPE_BOOL|MASK_LIST,   &flt_off_sw        },
           { "outl_elvs",         TYPE_DOUBLE|MASK_LIST, &outl_elvs         },
