@@ -148,11 +148,7 @@ int init_glm_ncdf(const char *fn, const char *title, AED_REAL lat,
 
     set_nc_attributes(ncid, time_id,   time_str,        NULL        PARAM_FILLVALUE);
 
-//  set_nc_attributes(ncid, NS_id,     "",        "Number of Layers" PARAM_FILLVALUE);
-    {
-    char *t = "Number of Layers";
-    nc_put_att(ncid, NS_id, "long_name", NC_CHAR, strlen(t), t);
-    }
+    nc_put_att(ncid, NS_id, "long_name", NC_CHAR, 16, "Number of Layers");
 
     set_nc_attributes(ncid, HICE_id,   "meters",  "Height of Ice"   PARAM_FILLVALUE);
     set_nc_attributes(ncid, HSNOW_id,  "meters",  "Height of Snow"  PARAM_FILLVALUE);
@@ -348,7 +344,7 @@ void store_nc_integer(int ncid, int id, int var_shape, int iscalar)
         iret = nc_put_var(ncid, id, &iscalar);
     else if (var_shape == T_SHAPE) {
         start[0] = set_no; edges[0] = 1;
-        iret = nc_put_vara(ncid,id, start, edges, &iscalar);
+        iret = nc_put_vara(ncid, id, start, edges, &iscalar);
     } else {
         fprintf(stderr, "store_nc_integer : non valid shape %d\n", var_shape);
         exit(1);

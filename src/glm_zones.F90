@@ -165,7 +165,7 @@ SUBROUTINE calc_zone_areas(areas, wlev, surf)
    DO lev=2, wlev
       IF ( zz(lev) > zone_heights(zon) ) zon = zon + 1
 
-      IF ( zone_heights(lev) > surf ) THEN
+      IF ( zone_heights(zon) > surf ) THEN
          IF (w_zones == 0) THEN
             w_zones = lev
             z_pc_wet(zon) = surf / (zone_heights(zon) - zone_heights(zon-1))
@@ -177,13 +177,14 @@ SUBROUTINE calc_zone_areas(areas, wlev, surf)
 
 #else
 
+   zon = 1
    zarea(1) = areas(1)
    DO lev=2, wlev
       IF ( zz(lev) > zone_heights(zon) ) zon = zon + 1
 
       zarea(zon) = zarea(zon) + areas(lev) - areas(lev-1)
 
-      IF ( zone_heights(lev) > surf ) THEN
+      IF ( zone_heights(zon) > surf ) THEN
          IF (w_zones == 0) THEN
             w_zones = lev
             z_pc_wet(zon) = surf / (zone_heights(zon) - zone_heights(zon-1))
@@ -228,18 +229,21 @@ SUBROUTINE copy_from_zone(x_cc, x_diag, x_diag_hz, wlev)
 
       IF (splitZone) THEN
          scale = (zone_heights(zon-1) - zz(lev-1)) / (zz(lev) - zz(lev-1))
-         x_diag(lev,:) = x_diag(zon,:) * scale
+         x_diag(lev,:) = z_diag(zon,:) * scale
          x_cc(lev,v_start:v_end) = z_cc(zon,v_start:v_end) * scale
 
          zon = zon - 1
 
-         x_diag(lev,:) = x_diag(lev,:) + (x_diag(zon,:) * (1.0 - scale))
+         x_diag(lev,:) = x_diag(lev,:) + (z_diag(zon,:) * (1.0 - scale))
          x_cc(lev,v_start:v_end) = x_cc(lev,v_start:v_end) + &
                                    z_cc(zon,v_start:v_end) * (1.0 - scale)
       ELSE
-         x_diag(lev,:) = x_diag(zon,:)
+         x_diag(lev,:) = z_diag(zon,:)
          x_cc(lev,v_start:v_end) = z_cc(zon,v_start:v_end)
       ENDIF
+   ENDDO
+   DO lev=1,n_zones
+      x_diag_hz(v_start:v_end) = x_diag_hz(v_start:v_end) + z_diag_hz(lev,1:nbenv)
    ENDDO
 END SUBROUTINE copy_from_zone
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

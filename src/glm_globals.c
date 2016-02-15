@@ -80,6 +80,7 @@ int O2crit;
 int O2critdep;
 int O2critdays;
 CLOGICAL MIXwithdraw = FALSE;
+CLOGICAL COUPLoxy = FALSE;
 AED_REAL WithdrawalTemp;
 AED_REAL fac_range_upper, fac_range_lower;
 

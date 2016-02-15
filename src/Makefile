@@ -209,6 +209,7 @@ ifeq ($(WITH_PLOTS),true)
     endif
   endif
 endif
+#LIBS+=-lefence
 
 CFLAGS=-Wall -I$(UTILDIR) -I$(PLOTDIR) $(CINCLUDES) $(DEFINES) $(DEBUG_CFLAGS) $(OPT_CFLAGS)
 FFLAGS+=$(DEBUG_FFLAGS) $(OPT_FFLAGS)

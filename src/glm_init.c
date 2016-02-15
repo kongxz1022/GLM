@@ -203,6 +203,7 @@ void init_glm(int *jstart, char *outp_dir, char *outp_fn, int *nsave)
     int             O2idx          = 0;
     AED_REAL       *target_temp    = NULL;
     LOGICAL         mix_withdraw;
+    LOGICAL         coupl_oxy_sw;
     extern AED_REAL fac_range_upper;
     extern AED_REAL fac_range_lower;
     AED_REAL       *outl_elvs    = NULL;
@@ -387,6 +388,7 @@ void init_glm(int *jstart, char *outp_dir, char *outp_fn, int *nsave)
           { "fac_range_upper",   TYPE_DOUBLE,           &fac_range_upper   },
           { "fac_range_lower",   TYPE_DOUBLE,           &fac_range_lower   },
           { "mix_withdraw",      TYPE_BOOL,             &mix_withdraw      },
+          { "coupl_oxy_sw",      TYPE_BOOL,             &coupl_oxy_sw      },
           { "flt_off_sw",        TYPE_BOOL|MASK_LIST,   &flt_off_sw        },
           { "outl_elvs",         TYPE_DOUBLE|MASK_LIST, &outl_elvs         },
           { "bsn_len_outl",      TYPE_DOUBLE|MASK_LIST, &bsn_len_outl      },
@@ -756,7 +758,8 @@ void init_glm(int *jstart, char *outp_dir, char *outp_fn, int *nsave)
     O2crit = crit_O2;
     O2critdep = crit_O2_dep;
     O2critdays = crit_O2_days;
-	MIXwithdraw = mix_withdraw;
+    MIXwithdraw = mix_withdraw;
+    COUPLoxy = coupl_oxy_sw;
 
     if (withdrTemp_fl != NULL) open_withdrtemp_file(withdrTemp_fl, timefmt_o);
 
@@ -853,6 +856,7 @@ void init_glm(int *jstart, char *outp_dir, char *outp_fn, int *nsave)
                 O2idx = wq_var_index_c(O2name[j],&tl);
                 if (O2idx < 0) {
                     fprintf(stderr, "Wrong oxygen name for outlet %3d ?\n",j+1); // How does it exit???
+                    Outflows[j].O2idx = -1;
                 } else  {
                     Outflows[j].O2idx = O2idx;
                 }
@@ -1223,6 +1227,11 @@ void initialise_lake(int namlst)
                 fprintf(stderr, "Cannot find \"%s\" for initial value\n", wq_names[j]);
         }
     }
+
+    if ( (j = get_nml_listlen(namlst, "init_profiles", "wq_init_vals")) != (num_wq_vars * num_depths) )
+        fprintf(stderr, "WARNING: Initial profiles problem - epected %d wd_init_vals entries but got %d\n",
+                                             (num_wq_vars * num_depths), j);
+
     // Likewise for each of the listed wq vars
     for (j = 0; j < num_wq_vars; j++) {
         if ( num_heights != 0 ) {

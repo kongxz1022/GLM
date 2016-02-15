@@ -687,8 +687,10 @@ AED_REAL do_inflows()
 
 /*----------------------------------------------------------------------------*/
 //BEGIN
-    if ( ! WQ_VarsS )   WQ_VarsS = malloc(Num_WQ_Vars * sizeof(AED_REAL));
-    if ( ! WQ_VarsTmp ) WQ_VarsTmp = malloc(NumInf*sizeof(wq_partic_t));
+    if ( NumInf <= 0 ) return 0.; // nothing to do
+
+    if ( WQ_VarsS == NULL )   WQ_VarsS = malloc(Num_WQ_Vars * sizeof(AED_REAL));
+    if ( WQ_VarsTmp == NULL ) WQ_VarsTmp = malloc(NumInf * sizeof(wq_partic_t));
     memset(WQ_VarsS, 0, (Num_WQ_Vars * sizeof(AED_REAL)));
 
     /**************************************************************************
@@ -1076,6 +1078,7 @@ int find_layer_by_height(AED_REAL height)
 }
 
 
+/******************************************************************************/
 static AED_REAL NewDrawHeight(int jday, int i, int idx_dep, AED_REAL height,
                     AED_REAL lWithdrawalTemp, AED_REAL maxtemp, AED_REAL mintemp,
                     int within_temp_range, int within_facility_range,
@@ -1083,13 +1086,21 @@ static AED_REAL NewDrawHeight(int jday, int i, int idx_dep, AED_REAL height,
 {
     if (height > Lake[surfLayer].Height)
         height = Lake[surfLayer].Height;
-    fprintf(myfile,"%8d,%8d,%8d,%12.4lf,%12.4lf,%12.4lf,%8d,%8d,%8d,%8d,%12.4lf,%12.4lf,%8d,%8d,%8d,%8d\n",
+    if (idx_dep < 0) {
+        fprintf(myfile,"%8d,%8d,%8d,%12.4lf,%12.4lf,%12.4lf,%8d,%8d,%8d,%8d,%12.4lf,%8d,%8d,%8d,%8d,%8d\n",
+                         jday,Outflows[i].Type,0,lWithdrawalTemp,maxtemp,mintemp,
+                         within_temp_range,within_facility_range,upper_bound,lower_bound,height,
+                         999,999,999,999,999);
+    } else {
+        fprintf(myfile,"%8d,%8d,%8d,%12.4lf,%12.4lf,%12.4lf,%8d,%8d,%8d,%8d,%12.4lf,%12.4lf,%8d,%8d,%8d,%8d\n",
                          jday,Outflows[i].Type,0,lWithdrawalTemp,maxtemp,mintemp,
                          within_temp_range,within_facility_range,upper_bound,lower_bound,height,
                          _WQ_Vars(Outflows[i].O2idx,idx_dep),999,999,999,999);
+    }
     return height;
 }
 
+/******************************************************************************/
 static AED_REAL NewDrawHeightTempdep(int jday, int i, int idx_dep, AED_REAL height,
                     AED_REAL lWithdrawalTemp, AED_REAL maxtemp, AED_REAL mintemp,
                     int within_temp_range, int within_facility_range,
@@ -1107,11 +1118,19 @@ static AED_REAL NewDrawHeightTempdep(int jday, int i, int idx_dep, AED_REAL heig
 
     TEMPdepvarwith_real = Lake[idx_lay].Temp;
     Tmix = ((TEMPdepvarwith_real*MASSdepvarwith)+(TEMPbotout*MASSbotout))/(MASSdepvarwith+MASSbotout);
-    fprintf(myfile,"%8d,%8d,%8d,%12.4lf,%12.4lf,%12.4lf,%8d,%8d,%8d,%8d,%12.4lf,%12.4lf,%8d,%12.4lf,%12.4lf,%12.4lf\n",
+    if (idx_dep < 0) {
+        fprintf(myfile,"%8d,%8d,%8d,%12.4lf,%12.4lf,%12.4lf,%8d,%8d,%8d,%8d,%12.4lf,%8d,%8d,%12.4lf,%12.4lf,%12.4lf\n",
+                            jday,Outflows[i].Type,0,lWithdrawalTemp,maxtemp,mintemp,
+                            within_temp_range,within_facility_range,upper_bound,lower_bound,height,
+                            999,1,(Outflows[i].Draw * Outflows[i].Factor),
+                            (Outflows[i+1].Draw * Outflows[i+1].Factor),Tmix);
+    } else {
+        fprintf(myfile,"%8d,%8d,%8d,%12.4lf,%12.4lf,%12.4lf,%8d,%8d,%8d,%8d,%12.4lf,%12.4lf,%8d,%12.4lf,%12.4lf,%12.4lf\n",
                          jday,Outflows[i].Type,0,lWithdrawalTemp,maxtemp,mintemp,
                          within_temp_range,within_facility_range,upper_bound,lower_bound,height,
                          _WQ_Vars(Outflows[i].O2idx,idx_dep),1,(Outflows[i].Draw * Outflows[i].Factor),
                            (Outflows[i+1].Draw * Outflows[i+1].Factor),Tmix);
+    }
     return height;
 }
 
@@ -1185,99 +1204,177 @@ AED_REAL SpecialConditionDraw(int jday, int i)
             fprintf(myfile,",DrawHeight,ActOXY,mix_withdraw,DISdepvarwith,DISbotout,Tmix\n");
         }
 
-        idx_dep = find_layer_by_height(O2critdep-Base);
+        if (COUPLoxy) {
+            // with oxygen coupling
+            //fprintf(stderr,"Coupled O2idx %4d\n",Outflows[i].O2idx);
+            idx_dep = find_layer_by_height(O2critdep-Base);
 
-        if (jday < checkjday) {
-            DrawHeight = Outflows[i].Hcrit-Base;         //# withdraw at another fixed height (e.g. bottom outlet)
-            if (DrawHeight > Lake[surfLayer].Height)   //get TargetLayerTemp
-                DrawHeight = Lake[surfLayer].Height;
-            fprintf(myfile,"%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%12.4lf,%12.4lf,%8d,%8d,%8d,%8d\n",
+            if (jday < checkjday) {
+                DrawHeight = Outflows[i].Hcrit-Base;         //# withdraw at another fixed height (e.g. bottom outlet)
+                if (DrawHeight > Lake[surfLayer].Height)   //get TargetLayerTemp
+                    DrawHeight = Lake[surfLayer].Height;
+                fprintf(myfile,"%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%12.4lf,%12.4lf,%8d,%8d,%8d,%8d\n",
                               jday,Outflows[i].Type,1,999,999,999,999,999,999,999,DrawHeight,
                               _WQ_Vars(Outflows[i].O2idx,idx_dep),999,999,999,999);
-        } else {
-            checkjday = -1;
-            if (_WQ_Vars(Outflows[i].O2idx,idx_dep) <= O2crit) {  //get modelled O2 conc. via _WQ_Vars(var,lyr)
-                if (checkjday < 0)
-                    checkjday = jday+O2critdays;
-                DrawHeight = Outflows[i].Hcrit-Base;               //# withdraw at another fixed height (e.g. bottom outlet)
-                if (DrawHeight > Lake[surfLayer].Height)
-                    DrawHeight = Lake[surfLayer].Height;
-                else if (Outflows[i].Hcrit < Base) {
-                    DrawHeight = 1; //1 m above bottom
-                    fprintf(stderr,"outlet_crit %12.4lf < base_elev %12.4lf - set to %12.4lf\n",Outflows[i].Hcrit,Base,Base+1);
-                }
-                fprintf(myfile,"%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%12.4lf,%12.4lf,%8d,%8d,%8d,%8d\n",
+            } else {
+                checkjday = -1;
+                if (_WQ_Vars(Outflows[i].O2idx,idx_dep) <= O2crit) {  //get modelled O2 conc. via _WQ_Vars(var,lyr)
+                    if (checkjday < 0)
+                        checkjday = jday+O2critdays;
+                    DrawHeight = Outflows[i].Hcrit-Base;               //# withdraw at another fixed height (e.g. bottom outlet)
+                    if (DrawHeight > Lake[surfLayer].Height)
+                        DrawHeight = Lake[surfLayer].Height;
+                    else if (Outflows[i].Hcrit < Base) {
+                        DrawHeight = 1; //1 m above bottom
+                        fprintf(stderr,"outlet_crit %12.4lf < base_elev %12.4lf - set to %12.4lf\n",Outflows[i].Hcrit,Base,Base+1);
+                    }
+                    fprintf(myfile,"%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%8d,%12.4lf,%12.4lf,%8d,%8d,%8d,%8d\n",
                                   jday,Outflows[i].Type,1,999,999,999,999,999,999,999,DrawHeight,
                                   _WQ_Vars(Outflows[i].O2idx,idx_dep),999,999,999,999);
-            } else {
-                for (j = 0; j < NumLayers; j++) {
-                    if (maxtemp < Lake[j].Temp) maxtemp = Lake[j].Temp;
-                    if (mintemp > Lake[j].Temp) mintemp = Lake[j].Temp;
-                }
+                } else {
+                    for (j = 0; j < NumLayers; j++) {
+                        if (maxtemp < Lake[j].Temp) maxtemp = Lake[j].Temp;
+                        if (mintemp > Lake[j].Temp) mintemp = Lake[j].Temp;
+                    }
 
-                if (MIXwithdraw && i != NumOut && (Outflows[i+1].Draw * Outflows[i+1].Factor) > 0) {
-                    AED_REAL MASSdepvarwith = 0, MASSbotout = 0, TEMPbotout = 0;
-                    AED_REAL TEMPdepvarwith = 0, TARGETtemp = -1.;
+                    if (MIXwithdraw && i != NumOut && (Outflows[i+1].Draw * Outflows[i+1].Factor) > 0) {
+                        AED_REAL MASSdepvarwith = 0, MASSbotout = 0, TEMPbotout = 0;
+                        AED_REAL TEMPdepvarwith = 0, TARGETtemp = -1.;
 
-                    MASSdepvarwith = (Outflows[i].Draw * Outflows[i].Factor); //mass of water for depth-variable withdrawal
-                    MASSbotout = (Outflows[i+1].Draw * Outflows[i+1].Factor); //mass of water for bottom outlet
+                        MASSdepvarwith = (Outflows[i].Draw * Outflows[i].Factor); //mass of water for depth-variable withdrawal
+                        MASSbotout = (Outflows[i+1].Draw * Outflows[i+1].Factor); //mass of water for bottom outlet
 
-                    idx_lay = find_layer_by_height(Outflows[i+1].OLev);
+                        idx_lay = find_layer_by_height(Outflows[i+1].OLev);
 
-                    TEMPbotout = Lake[idx_lay].Temp; //temperature of bottom outlet layer
-                    //# calculate temperature for depth-variable withdrawal from mixing temperature
-                    TEMPdepvarwith = (lWithdrawalTemp*(MASSdepvarwith+MASSbotout)-(MASSbotout*TEMPbotout)) / MASSdepvarwith;
-                    TARGETtemp = TEMPdepvarwith;
-                    if (TARGETtemp > maxtemp) // check if lake temperature is lower than target temperature
-                        DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,1,0);
-                    else if (TARGETtemp < mintemp) // check if lake temperature is higher than target temperature
-                        DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,0,1);
-                    else {
-                        mindifftemp = 100;
-                        for (j = 0; j < NumLayers; j++) {
-                            laketemp = fabs(Lake[j].Temp-TARGETtemp);
-                            if (mindifftemp > laketemp)
-                                mindifftemp = laketemp;
-                            if (laketemp == mindifftemp)
-                                targetlyr = j;
-                        }
-                        if (Lake[targetlyr].Height >= (fac_range_upper-Base))
-                            DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,1,0);
-                        else if (Lake[targetlyr].Height <= (fac_range_lower-Base))
-                            DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
+                        TEMPbotout = Lake[idx_lay].Temp; //temperature of bottom outlet layer
+                        //# calculate temperature for depth-variable withdrawal from mixing temperature
+                        TEMPdepvarwith = (lWithdrawalTemp*(MASSdepvarwith+MASSbotout)-(MASSbotout*TEMPbotout)) / MASSdepvarwith;
+                        TARGETtemp = TEMPdepvarwith;
+                        if (TARGETtemp > maxtemp) // check if lake temperature is lower than target temperature
+                            DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,1,0);
+                        else if (TARGETtemp < mintemp) // check if lake temperature is higher than target temperature
+                            DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,0,1);
                         else {
-                            DrawHeight = Lake[targetlyr].MeanHeight; // combine layer index with mean height
-                            if (DrawHeight <= (fac_range_lower-Base))
+                            mindifftemp = 100;
+                            for (j = 0; j < NumLayers; j++) {
+                                laketemp = fabs(Lake[j].Temp-TARGETtemp);
+                                if (mindifftemp > laketemp)
+                                    mindifftemp = laketemp;
+                                if (laketemp == mindifftemp)
+                                    targetlyr = j;
+                            }
+                            if (Lake[targetlyr].Height >= (fac_range_upper-Base))
+                                DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,1,0);
+                            else if (Lake[targetlyr].Height <= (fac_range_lower-Base))
                                 DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
-                            else
-                                NewDrawHeightTempdep(jday,i,idx_dep,DrawHeight,lWithdrawalTemp, maxtemp, mintemp,1,1,0,0);
+                            else {
+                                DrawHeight = Lake[targetlyr].MeanHeight; // combine layer index with mean height
+                                if (DrawHeight <= (fac_range_lower-Base))
+                                    DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
+                                else
+                                    NewDrawHeightTempdep(jday,i,idx_dep,DrawHeight,lWithdrawalTemp, maxtemp, mintemp,1,1,0,0);
+                            }
+                        }
+                    } else {
+                        if (lWithdrawalTemp > maxtemp) // check if lake temperature is lower than target temperature
+                            DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,1,0);
+                        else if (lWithdrawalTemp < mintemp) // check if lake temperature is higher than target temperature
+                            DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,0,1);
+                        else {
+                            mindifftemp = 100;
+                            for (j = 0; j < NumLayers; j++) {
+                                laketemp = fabs(Lake[j].Temp-lWithdrawalTemp);
+                                if (mindifftemp > laketemp)
+                                    mindifftemp = laketemp;
+                                if (laketemp == mindifftemp)
+                                    targetlyr = j;
+                            }
+                            if (Lake[targetlyr].Height >= (fac_range_upper-Base))
+                                DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,1,0);
+                            else if (Lake[targetlyr].Height <= (fac_range_lower-Base))
+                                DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
+                            else {
+                                DrawHeight = Lake[targetlyr].MeanHeight; // combine layer index with mean height
+                                if (DrawHeight <= (fac_range_lower-Base))
+                                    DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
+                                else
+                                    NewDrawHeight(jday,i,idx_dep,DrawHeight,lWithdrawalTemp, maxtemp, mintemp,1,1,0,0);
+                            }
                         }
                     }
-                } else {
-                    if (lWithdrawalTemp > maxtemp) // check if lake temperature is lower than target temperature
-                        DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,1,0);
-                    else if (lWithdrawalTemp < mintemp) // check if lake temperature is higher than target temperature
-                        DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,0,1);
+                }
+            }
+        } else {
+            // without oxygen coupling
+            //fprintf(stderr,"De-coupled - Num_WQ_Vars %8d\n",Num_WQ_Vars);
+            idx_dep = -1;
+            for (j = 0; j < NumLayers; j++) {
+                if (maxtemp < Lake[j].Temp) maxtemp = Lake[j].Temp;
+                if (mintemp > Lake[j].Temp) mintemp = Lake[j].Temp;
+            }
+
+            if (MIXwithdraw && i != NumOut && (Outflows[i+1].Draw * Outflows[i+1].Factor) > 0) {
+                AED_REAL MASSdepvarwith = 0, MASSbotout = 0, TEMPbotout = 0;
+                AED_REAL TEMPdepvarwith = 0, TARGETtemp = -1.;
+
+                MASSdepvarwith = (Outflows[i].Draw * Outflows[i].Factor); //mass of water for depth-variable withdrawal
+                MASSbotout = (Outflows[i+1].Draw * Outflows[i+1].Factor); //mass of water for bottom outlet
+
+                idx_lay = find_layer_by_height(Outflows[i+1].OLev);
+
+                TEMPbotout = Lake[idx_lay].Temp; //temperature of bottom outlet layer
+                //# calculate temperature for depth-variable withdrawal from mixing temperature
+                TEMPdepvarwith = (lWithdrawalTemp*(MASSdepvarwith+MASSbotout)-(MASSbotout*TEMPbotout)) / MASSdepvarwith;
+                TARGETtemp = TEMPdepvarwith;
+                if (TARGETtemp > maxtemp) // check if lake temperature is lower than target temperature
+                    DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,1,0);
+                else if (TARGETtemp < mintemp) // check if lake temperature is higher than target temperature
+                    DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,0,1);
+                else {
+                    mindifftemp = 100;
+                    for (j = 0; j < NumLayers; j++) {
+                        laketemp = fabs(Lake[j].Temp-TARGETtemp);
+                        if (mindifftemp > laketemp)
+                            mindifftemp = laketemp;
+                        if (laketemp == mindifftemp)
+                            targetlyr = j;
+                    }
+                    if (Lake[targetlyr].Height >= (fac_range_upper-Base))
+                        DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,1,0);
+                    else if (Lake[targetlyr].Height <= (fac_range_lower-Base))
+                        DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
                     else {
-                        mindifftemp = 100;
-                        for (j = 0; j < NumLayers; j++) {
-                            laketemp = fabs(Lake[j].Temp-lWithdrawalTemp);
-                            if (mindifftemp > laketemp)
-                                mindifftemp = laketemp;
-                            if (laketemp == mindifftemp)
-                                targetlyr = j;
-                        }
-                        if (Lake[targetlyr].Height >= (fac_range_upper-Base))
-                            DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,1,0);
-                        else if (Lake[targetlyr].Height <= (fac_range_lower-Base))
+                        DrawHeight = Lake[targetlyr].MeanHeight; // combine layer index with mean height
+                        if (DrawHeight <= (fac_range_lower-Base))
+                            DrawHeight = NewDrawHeightTempdep(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
+                        else
+                            NewDrawHeightTempdep(jday,i,idx_dep,DrawHeight,lWithdrawalTemp, maxtemp, mintemp,1,1,0,0);
+                    }
+                }
+            } else {
+                if (lWithdrawalTemp > maxtemp) // check if lake temperature is lower than target temperature
+                    DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,1,0);
+                else if (lWithdrawalTemp < mintemp) // check if lake temperature is higher than target temperature
+                    DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,0,999,0,1);
+                else {
+                    mindifftemp = 100;
+                    for (j = 0; j < NumLayers; j++) {
+                        laketemp = fabs(Lake[j].Temp-lWithdrawalTemp);
+                        if (mindifftemp > laketemp)
+                            mindifftemp = laketemp;
+                        if (laketemp == mindifftemp)
+                            targetlyr = j;
+                    }
+                    if (Lake[targetlyr].Height >= (fac_range_upper-Base))
+                        DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_upper-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,1,0);
+                    else if (Lake[targetlyr].Height <= (fac_range_lower-Base))
+                        DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
+                    else {
+                        DrawHeight = Lake[targetlyr].MeanHeight; // combine layer index with mean height
+                        if (DrawHeight <= (fac_range_lower-Base))
                             DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
-                        else {
-                            DrawHeight = Lake[targetlyr].MeanHeight; // combine layer index with mean height
-                            if (DrawHeight <= (fac_range_lower-Base))
-                                DrawHeight = NewDrawHeight(jday,i,idx_dep,(fac_range_lower-Base),lWithdrawalTemp, maxtemp, mintemp,1,0,0,1);
-                            else
-                                NewDrawHeight(jday,i,idx_dep,DrawHeight,lWithdrawalTemp, maxtemp, mintemp,1,1,0,0);
-                        }
+                        else
+                            NewDrawHeight(jday,i,idx_dep,DrawHeight,lWithdrawalTemp, maxtemp, mintemp,1,1,0,0);
                     }
                 }
             }

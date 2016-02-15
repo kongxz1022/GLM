@@ -904,7 +904,6 @@ SUBROUTINE calculate_fluxes(column, wlev, column_sed, nsed, flux_pel, flux_atm, 
                   ENDIF
                ENDIF
             ENDDO
-            !# THIS NEEDS TO BE DONE FOR BENTHIC DIAG VARS BUT THERE IS NO z_cc_diag
             !print*,"Calling ben for zone ",zone_var,i,z_cc(i,31)
          ENDIF
          IF ( benthic_mode .EQ. 3 ) THEN
@@ -916,10 +915,7 @@ SUBROUTINE calculate_fluxes(column, wlev, column_sed, nsed, flux_pel, flux_atm, 
          !# They are stored in flux_ben (benthic vars) and flux_pel (water vars)
          flux_pel_pre = flux_pel
 
-!print *,'flxp',zon,flux_pel(zon,:)
-
          CALL aed2_calculate_benthic(column_sed, zon)
-!print *,'flxp',zon,flux_pel(zon,:)
 
          !# Record benthic fluxes in the zone array
          flux_zon(zon, :) = flux_ben(:)
@@ -927,7 +923,6 @@ SUBROUTINE calculate_fluxes(column, wlev, column_sed, nsed, flux_pel, flux_atm, 
          !# Now we have to find out the water column flux that occured and
          !# disaggregate it to relevant layers
          flux_pel_z(zon,:) = flux_pel(zon,:)-flux_pel_pre(zon,:)
-!print *,'flx',zon,flux_pel_z(zon,:)
       ENDDO
 
       !# Disaggregation of zone induced fluxes to overlying layers
@@ -956,14 +951,10 @@ SUBROUTINE calculate_fluxes(column, wlev, column_sed, nsed, flux_pel, flux_atm, 
       !# i.e. don't flux out more than is there & distribute
       !# bottom flux into pelagic over bottom box (i.e., divide by layer height).
       !# scaled to proportion of area that is "bottom"
-!print *,'flux_pel',flux_pel(:,1)
       DO lev=1,wlev
          if(lev>1)flux_pel(lev, :) = flux_pel(lev, :) * (area(lev)-area(lev-1))/area(lev)
          flux_pel(lev, :) = max(-1.0 * cc(lev, :), flux_pel(lev, :)/dz(lev))
       ENDDO
-
-!print *,'flux_pel',flux_pel(:,1)
-
    ELSE
       !# Sediment zones are not simulated and therefore just operate on the bottom-most
       !# GLM layer as the "benthos". If benthic_mode=1 then benthic fluxes will also be
