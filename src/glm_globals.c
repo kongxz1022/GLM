@@ -82,7 +82,7 @@ int O2critdays;
 CLOGICAL MIXwithdraw = FALSE;
 CLOGICAL COUPLoxy = FALSE;
 AED_REAL WithdrawalTemp;
-AED_REAL fac_range_upper, fac_range_lower;
+AED_REAL fac_range_upper = -1, fac_range_lower = -1;
 
 //------------------------------------------------------------------------------
 
@@ -143,8 +143,6 @@ int      cloud_mode = 1;
 
 //------------------------------------------------------------------------------
 // SNOWICE
-//I'm not sure if values need to be declared here, or glm_init.
-// Both currently
 AED_REAL snow_albedo_factor = 1.0;
 AED_REAL snow_rho_max       = 300.;
 AED_REAL snow_rho_min       = 50.;
