@@ -327,6 +327,8 @@ void write_outflow(int of_idx, int jday, AED_REAL DrawHeight, AED_REAL vol)
     for (lvl = botmLayer; lvl <= surfLayer; lvl++)
         if (Lake[lvl].Height >= DrawHeight) break;
 
+    if ( lvl > surfLayer ) return; // DrawHeight above the lake top
+
     if ( csv_outlet_allinone ) {
         if ( of_idx == 0 ) // initialize
             vol_tot = 0;
