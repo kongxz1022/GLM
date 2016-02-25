@@ -271,7 +271,6 @@
 !   met_sw         [bool]   switch to include surface meteorological forcing
 !   lw_type        [string] type of longwave data supplied (LW_IN/LW_CC/LW_NET)
 !   rain_sw        [bool]   include rainfall nutrient composition
-!   snow_sw        [bool]   include snowfall (m/d)
 !   atm_stab       [bool]   account for non-neutral atmospheric stability
 !   catchrain      [bool]   flag that enables runoff from exposed banks of lake area
 !   rad_mode       [integer] short and long wave radation model configuration (see manual)
@@ -298,7 +297,6 @@
    met_sw      = .true.
    lw_type     = 'LW_IN'
    rain_sw     = .false.
-!  snow_sw     = .false.
    atm_stab    = .false.
    catchrain   = .false.
    rad_mode    = 1
