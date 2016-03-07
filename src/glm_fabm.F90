@@ -57,7 +57,7 @@
 #define _NEWER_FABM_
 !# Then some time after dec 2014 the parameters were changed again - sigh
 !#  Not ready to roll this out yet - still need to do appropriate testing
-!#define _EVEN_NEWER_
+#define _EVEN_NEWER_
 
 #ifdef __GFORTRAN__
 #  define _LINK_POINTER_(dst, src)  CALL link_pointer(dst, src)
@@ -252,6 +252,8 @@ SUBROUTINE fabm_init_glm(i_fname,len,MaxLayers,NumWQVars,NumWQBen,pKw) BIND(C, n
 
    !# Initialize model tree (creates metadata and assigns variable identifiers)
    CALL fabm_set_domain(model,MaxLayers)
+   CALL model%set_bottom_index(1)
+   CALL model%set_surface_index(MaxLayers)
 
    print*,'FABM : n_vars      = ', ubound(model%info%state_variables,1)
    print*,'FABM : n_vars_ben  = ', ubound(model%info%state_variables_ben,1)
@@ -607,6 +609,7 @@ SUBROUTINE fabm_do_glm(wlev, pIce) BIND(C, name=_WQ_DO_GLM)
 !-------------------------------------------------------------------------------
 !BEGIN
    lIce = pIce
+   CALL model%set_surface_index(wlev)
 
    !# re-compute the layer heights
    dz(1) = z(1)
