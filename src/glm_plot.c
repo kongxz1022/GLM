@@ -52,8 +52,9 @@
 #endif
 
 CLOGICAL do_plots, saveall = 0;
-int nplots, theplots[MAX_PLOTS+1];
-char **vars = NULL;
+static int nplots = 9;
+static int max_plots = 16, *theplots = NULL;
+static char **vars = NULL;
 int today = 0;
 int plotstep = 0;
 AED_REAL psubday = 1;
@@ -100,8 +101,6 @@ void init_plots(int jstart, int ndays, AED_REAL crest)
 
 /*----------------------------------------------------------------------------*/
 
-    for (i = 0; i < MAX_PLOTS+1; i++) theplots[i] = -1;
-
     if ( (namlst = open_namelist(plots_nml_name)) < 0 ) {
         fprintf(stderr,"Error opening namelist file plots.nml\n");
         return;
@@ -118,10 +117,10 @@ void init_plots(int jstart, int ndays, AED_REAL crest)
        return;
     }
 
-    if ( nplots > MAX_PLOTS ) {
-        fprintf(stderr, "Built-in plotter can only handle %d plots\n", MAX_PLOTS);
-        nplots = MAX_PLOTS;
-    }
+    max_plots = nplots + 10;
+    theplots = malloc(max_plots*sizeof(int));
+
+    for (i = 0; i < max_plots+1; i++) theplots[i] = -1;
 
     glm_vers = malloc(strlen(GLM_VERSION) + 10);
     sprintf(glm_vers, "GLM-%s", GLM_VERSION);
@@ -132,7 +131,7 @@ void init_plots(int jstart, int ndays, AED_REAL crest)
     set_progname(glm_vers);
 #ifdef XPLOTS
     if ( xdisp )
-        if ( init_plotter(&maxx, &maxy) < 0 ) exit(1);
+        if ( init_plotter_max(max_plots, &maxx, &maxy) < 0 ) exit(1);
 #endif
 
     acrs = (maxx + 90) / (100 + plot_width);

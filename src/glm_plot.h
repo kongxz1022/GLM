@@ -34,8 +34,6 @@
 
 #ifdef PLOTS
 
-#define MAX_PLOTS  9
-
 #ifdef _FORTRAN_SOURCE_
 
   INTERFACE
