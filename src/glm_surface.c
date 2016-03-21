@@ -164,6 +164,7 @@ void do_surface_thermodynamics(int jday, int iclock, int LWModel,
     const AED_REAL  rho_ice_blue = 917.0; //# density of blue ice
     const AED_REAL  rho_ice_white = 890.0; //# density of white ice
     const AED_REAL  eps_water = 0.985;     //# emissivity of the water surface
+    const AED_REAL  p_atm = 1013.0;        //# Atmospheric pressure in hectopascals ==101300 Pa
 
 /*----------------------------------------------------------------------------*/
 
@@ -189,13 +190,14 @@ void do_surface_thermodynamics(int jday, int iclock, int LWModel,
 
     AED_REAL AAA, BBB, CCC, DDD, EEE, FFF, GGG;
     AED_REAL Temp_ice;        //# Temperaure of the top layer of the ice cover model oC
-    AED_REAL T01_OLD,T01_NEW;  //# Not sure how these are used as Temp_ice always == 0 >= melting
+    AED_REAL T01_OLD,T01_NEW; //# Not sure how these are used as Temp_ice always == 0 >= melting
     AED_REAL rho_snow;        //# Density of snow layer kg/m3
     AED_REAL rho_snow_old;    //# Density of snow layer compacted by rain kg/m3
     AED_REAL compact_snow;    //# Fraction of snow compacted by rain []
     AED_REAL K_snow;          //# thermal conductivity of snow [W/m2/oC]
     AED_REAL SUMPO4, SUMTP, SUMNO3, SUMNH4, SUMTN, SUMSI;
-    AED_REAL Q_latent_ice;        //# Latent heat of melting or freezing of ice [W/m2]
+    AED_REAL Q_latent_ice;    //# Latent heat of melting or freezing of ice [W/m2]
+    AED_REAL rho_air;         //# atm_density
 
    //# New parameters for heat flux estimate
     AED_REAL KSED;
@@ -287,7 +289,6 @@ void do_surface_thermodynamics(int jday, int iclock, int LWModel,
     // Surface heat exchange: Units are Joules/m**2/s or W/m**2
 
     // Get atmospheric pressure and density
-    AED_REAL p_atm = 1013.0,   // Atmospheric pressure in hectopascals ==101300 Pa
     //        atm_density = (p_atm*100.0)/(287.058 * (MetData.AirTemp+Kelvin));
     rho_air = atm_density(p_atm*100.0,MetData.SatVapDef,MetData.AirTemp);
 
@@ -484,7 +485,8 @@ void do_surface_thermodynamics(int jday, int iclock, int LWModel,
             switch (cloud_mode) {
                 case 1:
                     // Idso and Jackson (1969)
-                    eps_star = (1.0 + 0.275*CloudCover)*(1.0 - 0.261 * exp(-0.000777 * pow(-MetData.AirTemp, 2.0))); //
+                    // eps_star = (1.0 + 0.275*CloudCover)*(1.0 - 0.261 * exp(-0.000777 * pow(-MetData.AirTemp, 2.0))); //
+                    eps_star = (1.0 + 0.17 * CloudCover * CloudCover)*(1.0 - 0.261 * exp(-0.000777 * pow(-MetData.AirTemp, 2.0)));
                     break;
                 case  2:
                     // Swinbank (1963)
@@ -584,7 +586,7 @@ void do_surface_thermodynamics(int jday, int iclock, int LWModel,
             //} else {
             //    break;
             //}
-            if (fabs(Q_iceout+Q_icemet) > 1.0) {
+            if (fabs(Q_iceout+Q_icemet) > 1.0 && fabs(T01_NEW-T01_OLD) > 0.001) {
                 if ((Q_iceout+Q_icemet) < 0.0) T01_NEW = Temp_ice;
                 if ((Q_iceout+Q_icemet) > 0.0) T01_OLD = Temp_ice;
                 Temp_ice = (T01_NEW+T01_OLD)/2.0;
@@ -655,7 +657,7 @@ void do_surface_thermodynamics(int jday, int iclock, int LWModel,
 
             // If there is snow, melt that first
             if (SurfData.HeightSnow > 0.0) {
-            //if (SurfData.HeightSnow != 0.0) {   !MH Getting -ve Snow Height in lake.csv
+            //if (SurfData.HeightSnow != 0.0) {   //!MH Getting -ve Snow Height in lake.csv
 
                 if (rho_snow == 0.0) rho_snow = snow_rho_max;
                 SurfData.dHt = (1/(Latent_Heat_Fusion*rho_snow))*(Q_icemet+Q_iceout)*noSecs;
@@ -724,8 +726,7 @@ void do_surface_thermodynamics(int jday, int iclock, int LWModel,
         Lake[i].Temp += dTemp;
     }
 
-    if (ice) {
-         printf("Surf Temp post light = %10.5f\n",Lake[surfLayer].Temp);}
+//  if (ice) { printf("Surf Temp post light = %10.5f\n",Lake[surfLayer].Temp);}
 
     // The change in ice thickness at the bottom can now be determined
     // with the temperature of the lake water readjusted for the surface
@@ -790,17 +791,17 @@ void do_surface_thermodynamics(int jday, int iclock, int LWModel,
         //                         noSecs)+Q_latent_ice)/(SPHEAT*Lake[surfLayer].Density*Lake[surfLayer].LayerVol);
         Lake[surfLayer].Temp = Lake[surfLayer].Temp+((-Q_watermol + Q_latent_ice)*Lake[surfLayer].LayerArea*noSecs)
                                  /(SPHEAT*Lake[surfLayer].Density*Lake[surfLayer].LayerVol);
-        printf("Surf Temp = %10.5f\n",Lake[surfLayer].Temp);
+//      printf("Surf Temp = %10.5f\n",Lake[surfLayer].Temp);
         Lake[surfLayer].Height = Lake[surfLayer].Height-SurfData.dHt*(rho_ice_blue/Lake[surfLayer].Density);
 
         recalc_surface_salt();
     }
 
-/******************************************************************************
- * Default sediment "heating" factor in glm_surface.c but since it is based
- * on Mendota ends up cooling Kinneret! Beware when using default values.
- * LAW: Added a switch and parameterization so we can experiment with this.
- * -----------------------------------*/
+    /******************************************************************************
+     * Default sediment "heating" factor in glm_surface.c but since it is based   *
+     * on Mendota ends up cooling Kinneret! Beware when using default values.     *
+     * LAW: Added a switch and parameterization so we can experiment with this.   *
+     ******************************************************************************/
 
     if(sed_heat_sw){
         // Input of heat from the sediments - based on rogers et al heat flux

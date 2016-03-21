@@ -702,9 +702,11 @@ void init_glm(int *jstart, char *outp_dir, char *outp_fn, int *nsave)
         }
         NumOut = num_outlet;
         if ( flt_off_sw == NULL ) {
-            // CAB This is a potential memory leak
             flt_off_sw = malloc(sizeof(LOGICAL)*num_outlet);
             for (i = 0; i < NumOut; i++) flt_off_sw[i] = FALSE;
+        } else if ( outlet_type == NULL ) {
+            outlet_type = malloc(sizeof(int)*num_outlet);
+            for (i = 0; i < NumOut; i++) outlet_type[i] = (flt_off_sw[i])?2:1;
         }
         for (i = 0; i < NumOut; i++) {
             // Outlet_type
