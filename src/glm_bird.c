@@ -204,6 +204,22 @@ AED_REAL cloud_from_bird(AED_REAL GHI, AED_REAL Solar)
 #define a   0.66182
 #define b  (-1.5236)
 #define c   0.98475
-    AED_REAL f_C = Solar / GHI;
-    return (( -b - sqrt((b * b) - 4 * a * (c - f_C))) / 2 * a);
+
+    AED_REAL f_C;          // Fraction of clear sky solar radiation
+    AED_REAL cloud = 0.;   // Cloud cover as fraction of one
+
+    if (Solar > 0. && GHI > 0.)
+        f_C = Solar / GHI;
+    else
+        f_C = 1;  //Night assume CC = 1}
+
+    tmp = (b * b) - 4 * a * (c - f_C);
+    if 	(tmp > 0)   // Assume fully clouded if f_C <<<< 1
+        cloud = (-b - sqrt(tmp)) / 2 * a;
+    else
+    	cloud = 1.;
+
+    if (cloud < 0.) cloud = 0.;
+
+    return cloud;
 }

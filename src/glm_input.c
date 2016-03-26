@@ -215,6 +215,7 @@ void read_daily_met(int julian, MetDataType *met)
         // Rain is the exception - goes as is
         submet[idx].Rain        = get_csv_val_r(csv, rain_idx) * rain_factor;
         submet[idx].RelHum      = get_csv_val_r(csv, hum_idx)  * rh_factor;
+
         if ( submet[idx].RelHum > 100. ) submet[idx].RelHum = 100.;
 
         if ( lwav_idx != -1 )
@@ -231,7 +232,7 @@ void read_daily_met(int julian, MetDataType *met)
             case 1 :
             case 2 :
                 break;
-            case 3 :
+            case 3 : // Solar radiation supplied, calculate cloud cover.
             case 4 :
             case 5 :
                 sol = calc_bird(Longitude, Latitude, julian, idx*3600, timezone_m);
@@ -239,7 +240,8 @@ void read_daily_met(int julian, MetDataType *met)
                     sol = clouded_bird(sol, submet[idx].LongWave);
                 if ( rad_mode == 3 )
                     submet[idx].LongWave = cloud_from_bird(sol, submet[idx].ShortWave);
-                submet[idx].ShortWave = sol;
+                else
+                    submet[idx].ShortWave = sol;
                 break;
         }
 
@@ -418,20 +420,23 @@ void open_met_file(const char *fname, int snow_sw, int rain_sw,
     submet = malloc(n_steps * sizeof(MetDataType));
 
     if (subdaily) {
-        if ( sw_idx != -1 )  { // we have solar data
-            if ( lwav_idx == -1 ) rad_mode = 3;
-            else {
-                if ( lw_ind == LW_CC ) rad_mode = 1;
-                else                   rad_mode = 2;
+		if (rad_mode == 0 )  {//Then need to determine rad_mode from longwave type
+            if ( sw_idx != -1 )  { // we have solar data
+                if ( lwav_idx == -1 ) rad_mode = 3;
+                else {
+                    if ( lw_ind == LW_CC ) rad_mode = 1;
+                    else                   rad_mode = 2;
+                }
+            } else { // no solar data
+                if ( lwav_idx == -1 ) rad_mode = 5;
+                else {
+                    if ( lw_ind == LW_CC ) rad_mode = 4;
+                //  else                   rad_mode = X;
+                }
             }
-        } else { // no solar data
-            if ( lwav_idx == -1 ) rad_mode = 5;
-            else {
-                if ( lw_ind == LW_CC ) rad_mode = 4;
-            //  else                   rad_mode = X;
-            }
-        }
+		}
     }
+
 }
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
