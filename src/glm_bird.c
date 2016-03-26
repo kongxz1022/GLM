@@ -207,6 +207,7 @@ AED_REAL cloud_from_bird(AED_REAL GHI, AED_REAL Solar)
 
     AED_REAL f_C;          // Fraction of clear sky solar radiation
     AED_REAL cloud = 0.;   // Cloud cover as fraction of one
+    AED_REAL tmp;
 
     if (Solar > 0. && GHI > 0.)
         f_C = Solar / GHI;

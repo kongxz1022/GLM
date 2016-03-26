@@ -95,7 +95,7 @@ fi
 if [ -f ${CURDIR}/src/glm ] ; then
   /bin/rm ${CURDIR}/src/glm
 fi
-cd ${CURDIR}/src
+cd ${CURDIR}
 make || exit 1
 
 cd ${CURDIR}
@@ -129,7 +129,7 @@ if [ "$OSTYPE" = "Darwin" ] ; then
   fi
   cd ${CURDIR}/macos
   /bin/bash macpkg.sh ${HOMEBREW}
-  mv ${CURDIR}/macos/glm_*.zip ${CURDIR}/bin/macos/
+  mv ${CURDIR}/macos/glm_*.zip bin/macos/
 fi
 
 exit 0

@@ -36,13 +36,18 @@ ifeq ($(WITH_PLOTS),)
     WITH_XPLOTS=true
   endif
   ifeq ($(PLOTDIR),)
-    PLOTDIR=../../libplot
+    PLOTDIR=../libplot
   endif
 endif
 
 ifeq ($(UTILDIR),)
-  UTILDIR=../../libutil
+  UTILDIR=../libutil
 endif
+
+srcdir=src
+incdir=src
+objdir=obj
+moddir=mod
 
 TARGETS=glm
 DEFINES=
@@ -90,7 +95,7 @@ endif
 
 ifeq ($(FABM),true)
   ifeq ($(FABMDIR),)
-    FABMDIR=../../fabm-git
+    FABMDIR=../fabm-git
   endif
   DEFINES+=-DFABM
 
@@ -129,7 +134,7 @@ ifeq ($(AED2),true)
   DEFINES+=-DAED2
 
   ifeq ($(AED2DIR),)
-    AED2DIR=../../libaed2
+    AED2DIR=../libaed2
   endif
 
   FINCLUDES+=-I$(AED2DIR)/include -I$(AED2DIR)/mod
@@ -150,7 +155,7 @@ ifeq ($(F90),ifort)
   FINCLUDES+=-I/opt/intel/include
   DEBUG_FFLAGS=-g -traceback
   OPT_FFLAGS=-O3
-  FFLAGS=-warn all -i-static -mp1 -stand f03 $(DEFINES) $(FINCLUDES)
+  FFLAGS=-warn all -module ${moddir} -i-static -mp1 -stand f03 $(DEFINES) $(FINCLUDES)
   ifeq ($(WITH_CHECKS),true)
     FFLAGS+=-check
   endif
@@ -163,7 +168,7 @@ else
   FINCLUDES+=-I/usr/include
   DEBUG_FFLAGS=-g -fbacktrace
   OPT_FFLAGS=-O3
-  FFLAGS=-Wall -Wno-c-binding-type -ffree-line-length-none -std=f2008 $(DEFINES) $(FINCLUDES) -fall-intrinsics
+  FFLAGS=-Wall -J ${moddir} -Wno-c-binding-type -ffree-line-length-none -std=f2008 $(DEFINES) $(FINCLUDES) -fall-intrinsics
   ifeq ($(WITH_CHECKS),true)
     FFLAGS+=-fcheck=all
   endif
@@ -214,30 +219,30 @@ endif
 CFLAGS=-Wall -I$(UTILDIR) -I$(PLOTDIR) $(CINCLUDES) $(DEFINES) $(DEBUG_CFLAGS) $(OPT_CFLAGS)
 FFLAGS+=$(DEBUG_FFLAGS) $(OPT_FFLAGS)
 
-OBJS=glm_globals.o \
-     glm_util.o \
-     glm_csv.o \
-     glm_mobl.o \
-     glm_mixu.o \
-     glm_wqual.o \
-     glm_layers.o \
-     glm_surface.o \
-     glm_input.o \
-     glm_plot.o \
-     glm_output.o \
-     glm_ncdf.o \
-     glm_lnum.o \
-     glm_init.o \
-     glm_flow.o \
-     glm_mixer.o \
-     glm_deep.o \
-     glm_bubbler.o \
-     glm_stress.o \
-     glm_bird.o \
-     glm_model.o \
-     glm_types.o \
-     glm_const.o \
-     glm_main.o
+OBJS=${objdir}/glm_globals.o \
+     ${objdir}/glm_util.o \
+     ${objdir}/glm_csv.o \
+     ${objdir}/glm_mobl.o \
+     ${objdir}/glm_mixu.o \
+     ${objdir}/glm_wqual.o \
+     ${objdir}/glm_layers.o \
+     ${objdir}/glm_surface.o \
+     ${objdir}/glm_input.o \
+     ${objdir}/glm_plot.o \
+     ${objdir}/glm_output.o \
+     ${objdir}/glm_ncdf.o \
+     ${objdir}/glm_lnum.o \
+     ${objdir}/glm_init.o \
+     ${objdir}/glm_flow.o \
+     ${objdir}/glm_mixer.o \
+     ${objdir}/glm_deep.o \
+     ${objdir}/glm_bubbler.o \
+     ${objdir}/glm_stress.o \
+     ${objdir}/glm_bird.o \
+     ${objdir}/glm_model.o \
+     ${objdir}/glm_types.o \
+     ${objdir}/glm_const.o \
+     ${objdir}/glm_main.o
 
 ifeq ($(USE_DL),true)
   LIBS+=-ldl
@@ -245,33 +250,42 @@ ifeq ($(USE_DL),true)
   FFLAGS+=-DUSE_DL_LOADER=1
   TARGETS+=$(AED2TARGETS) $(FABMTARGETS)
 else
-  OBJS+=glm_zones.o
+  OBJS+=${objdir}/glm_zones.o
   ifeq ($(AED2),true)
-    OBJS+=glm_aed2.o
+    OBJS+=${objdir}/glm_aed2.o
   endif
   ifeq ($(FABM),true)
-    OBJS+=glm_fabm.o ode_solvers.o
+    OBJS+=${objdir}/glm_fabm.o ${objdir}/ode_solvers.o
   endif
 endif
 
 
 all: $(TARGETS)
 
+lib:
+	@mkdir lib
 
-glm: $(OBJS) $(GLM_DEPS)
+${objdir}:
+	@mkdir ${objdir}
+
+${moddir}:
+	@mkdir ${moddir}
+
+glm: ${objdir} ${moddir} $(OBJS) $(GLM_DEPS)
 	$(CC) -o glm $(EXTRALINKFLAGS) $(OBJS) $(LIBS)
 
 clean:
-	@touch 1.o 1.mod 1.t 1__genmod.f90 glm 1.so glm_test_bird
-	@/bin/rm *.mod *.o *.t *__genmod.f90 glm *.so glm_test_bird
+	@touch ${objdir}/1.o ${moddir}/1.mod 1.t 1__genmod.f90 glm 1.so glm_test_bird
+	@/bin/rm ${moddir}/*.mod ${objdir}/*.o *.t *__genmod.f90 *.so glm_test_bird
 	@echo Made clean
 
 distclean: clean
+	@/bin/rm -rf ${objdir} ${moddir} glm
 
-%.o: %.F90 glm.h
-	$(F90) -fPIC $(FFLAGS) $(EXTRA_FFLAGS) -D_FORTRAN_SOURCE_ -c $< -o $@
+#${objdir}/%.o: ${srcdir}%.F90 ${incdir}/glm.h ${moddir} ${objdir}
+#	$(F90) -fPIC $(FFLAGS) $(EXTRA_FFLAGS) -D_FORTRAN_SOURCE_ -c $< -o $@
 
-%.o: %.c glm.h
+${objdir}/%.o: ${srcdir}/%.c ${incdir}/glm.h
 	$(CC) -fPIC $(CFLAGS) $(EXTRA_FLAGS) -D_C_VERSION_ -c $< -o $@
 
 %.so:
@@ -292,12 +306,22 @@ libglm_wq_fabm.so: glm_fabm.o ode_solvers.o glm_plugin.o
 
 # special needs dependancies
 
-glm_aed2.o: glm_aed2.F90 glm_types.o
-glm_fabm.o: glm_fabm.F90 glm_types.o ode_solvers.o
-glm_types.o: glm_types.F90 glm.h
-ode_solvers.o: ode_solvers.F90
+${objdir}/glm_aed2.o: ${srcdir}/glm_aed2.F90 ${objdir}/glm_types.o
+	$(F90) -fPIC $(FFLAGS) $(EXTRA_FFLAGS) -D_FORTRAN_SOURCE_ -c $< -o $@
 
-glm_globals.o: glm_globals.c glm_globals.h glm.h
-glm_bubbler.o: glm_bubbler.c glm_globals.h glm.h
-glm_plugin.o: glm_plugin.c glm_plugin.h glm.h
+${objdir}/glm_zones.o: ${srcdir}/glm_zones.F90 ${objdir}/glm_types.o
+	$(F90) -fPIC $(FFLAGS) $(EXTRA_FFLAGS) -D_FORTRAN_SOURCE_ -c $< -o $@
+
+${objdir}/glm_fabm.o: ${srcdir}/glm_fabm.F90 ${objdir}/glm_types.o ${objdir}/ode_solvers.o
+	$(F90) -fPIC $(FFLAGS) $(EXTRA_FFLAGS) -D_FORTRAN_SOURCE_ -c $< -o $@
+
+${objdir}/glm_types.o: ${srcdir}/glm_types.F90 ${incdir}/glm.h
+	$(F90) -fPIC $(FFLAGS) $(EXTRA_FFLAGS) -D_FORTRAN_SOURCE_ -c $< -o $@
+
+${objdir}/ode_solvers.o: ${srcdir}/ode_solvers.F90
+	$(F90) -fPIC $(FFLAGS) $(EXTRA_FFLAGS) -D_FORTRAN_SOURCE_ -c $< -o $@
+
+${objdir}/glm_globals.o: ${srcdir}/glm_globals.c ${incdir}/glm_globals.h ${incdir}/glm.h
+${objdir}/glm_bubbler.o: ${srcdir}/glm_bubbler.c ${incdir}/glm_globals.h ${incdir}/glm.h
+${objdir}/glm_plugin.o: ${srcdir}/glm_plugin.c ${incdir}/glm_plugin.h ${incdir}/glm.h
 
