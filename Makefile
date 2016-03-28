@@ -274,7 +274,7 @@ ${moddir}:
 glm: ${objdir} ${moddir} $(OBJS) $(GLM_DEPS)
 	$(CC) -o glm $(EXTRALINKFLAGS) $(OBJS) $(LIBS)
 
-clean:
+clean: ${objdir} ${moddir}
 	@touch ${objdir}/1.o ${moddir}/1.mod 1.t 1__genmod.f90 glm 1.so glm_test_bird
 	@/bin/rm ${moddir}/*.mod ${objdir}/*.o *.t *__genmod.f90 *.so glm_test_bird
 	@echo Made clean
