@@ -420,7 +420,7 @@ void open_met_file(const char *fname, int snow_sw, int rain_sw,
     submet = malloc(n_steps * sizeof(MetDataType));
 
     if (subdaily) {
-		if (rad_mode == 0 )  {//Then need to determine rad_mode from longwave type
+        if (rad_mode == 0 )  {//Then need to determine rad_mode from longwave type
             if ( sw_idx != -1 )  { // we have solar data
                 if ( lwav_idx == -1 ) rad_mode = 3;
                 else {
@@ -434,7 +434,7 @@ void open_met_file(const char *fname, int snow_sw, int rain_sw,
                 //  else                   rad_mode = X;
                 }
             }
-		}
+        }
     }
 
 }

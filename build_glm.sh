@@ -129,7 +129,7 @@ if [ "$OSTYPE" = "Darwin" ] ; then
   fi
   cd ${CURDIR}/macos
   /bin/bash macpkg.sh ${HOMEBREW}
-  mv ${CURDIR}/macos/glm_*.zip bin/macos/
+  mv ${CURDIR}/macos/glm_*.zip ${CURDIR}/bin/macos/
 fi
 
 exit 0
