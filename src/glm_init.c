@@ -718,6 +718,10 @@ void init_glm(int *jstart, char *outp_dir, char *outp_fn, int *nsave)
                     exit(1);
                 }
             }
+            if (Outflows[i].Type == 2 || Outflows[i].FloatOff ) {
+                Outflows[i].FloatOff = TRUE;
+                Outflows[i].Type = 2;
+            }
             if ( (Outflows[i].FloatOff = flt_off_sw[i]) ) {
                 if ( (outl_elvs[i] > (crest_elev-base_elev)) || (outl_elvs[i] < 0.0) ) {
                     fprintf(stderr,
@@ -734,10 +738,6 @@ void init_glm(int *jstart, char *outp_dir, char *outp_fn, int *nsave)
                     exit(1);
                 }
                 Outflows[i].OLev = outl_elvs[i] - Base; // else make it relative to bottom
-            }
-            if (Outflows[i].Type == 2 || Outflows[i].FloatOff ) {
-                Outflows[i].FloatOff = TRUE;
-                Outflows[i].Type = 2;
             }
 //          Outflows[i].OLen = bsn_len_outl[i];
 //          Outflows[i].OWid = bsn_wid_outl[i];
