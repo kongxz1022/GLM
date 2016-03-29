@@ -258,7 +258,7 @@ SUBROUTINE copy_to_zone(x_cc, wlev)
 !
 !LOCALS
    INTEGER  :: zon, lev
-   AED_REAL :: scale, surf
+   AED_REAL :: surf
    INTEGER  :: zcount(n_zones)
 !
 !-------------------------------------------------------------------------------

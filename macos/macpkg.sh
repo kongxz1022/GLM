@@ -24,7 +24,7 @@ sed -i '' -e "s/VERSION/${VERSION}/" glm.app/Contents/Info.plist
 sed -i '' -e "s/BUILDDATE/${BUILDDATE}/" glm.app/Contents/Info.plist
 
 cp PkgInfo    glm.app/Contents
-cp ../src/glm glm.app/Contents/MacOS
+cp ../glm glm.app/Contents/MacOS
 cp glm.icns   glm.app/Contents/Resources
 cp glm_files.icns  glm.app/Contents/Resources
 cp InfoPlist.strings glm.app/Contents/Resources/English.lproj

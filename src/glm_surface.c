@@ -60,7 +60,7 @@ AED_REAL  atmos_stability(AED_REAL *Q_latentheat,
  * Variables for the ice cover components                                     *
  * density_s = density of snow                                                *
  * Tf = temperature at which the water freezes                                *
- * K_snow = thermal conductivity of snow                                         *
+ * K_snow = thermal conductivity of snow                                      *
  * K_I = thermal conductivity of ice                                          *
  * K_w = molecular thermal conductivity of water                              *
  * Tmelt = temperature of ice melt                                            *
@@ -150,7 +150,7 @@ void do_surface_thermodynamics(int jday, int iclock, int LWModel,
     const AED_REAL  K_ice_white = 2.3;  //# thermal conductivity of white ice
     const AED_REAL  K_ice_blue = 2.0;   //# thermal conductivity of blue ice
     const AED_REAL  K_water = 0.57;     //# molecular thermal conductivity of water
-    const AED_REAL  CSEN = 0.0014;      //# sensible heat?  only used in underflow => redundant?
+//  const AED_REAL  CSEN = 0.0014;      //# sensible heat?  only used in underflow => redundant?
     const AED_REAL  Latent_Heat_Fusion = 334000.0;  // latent heat of fusion J/kg both ice & snow
     const AED_REAL  Temp_melt = 0.0;    //# temperature at which ice melts ~= temperature at which water freezes = 0.0oC
     const AED_REAL  f_sw_wl1 = 0.7;     //# fraction of short wave radiation in first wavelength band
@@ -205,7 +205,7 @@ void do_surface_thermodynamics(int jday, int iclock, int LWModel,
     AED_REAL ZSED;
 
     int i;
-    int underFlow;
+//  int underFlow;
     int kDays;
 
 /*----------------------------------------------------------------------------*/
@@ -232,7 +232,7 @@ void do_surface_thermodynamics(int jday, int iclock, int LWModel,
     Q_snowice = 0.0;
     Q_Rain = 0.0;
     rho_snow = SurfData.RhoSnow;
-    underFlow = FALSE;
+//  underFlow = FALSE;
 
     //# Snow conductivity (eqn. 12 Rogers et al. 1995)
     //# To avoid division by zero set to 0.31 when no snow

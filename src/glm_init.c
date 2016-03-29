@@ -718,11 +718,12 @@ void init_glm(int *jstart, char *outp_dir, char *outp_fn, int *nsave)
                     exit(1);
                 }
             }
+            Outflows[i].FloatOff = flt_off_sw[i];
             if (Outflows[i].Type == 2 || Outflows[i].FloatOff ) {
                 Outflows[i].FloatOff = TRUE;
                 Outflows[i].Type = 2;
             }
-            if ( (Outflows[i].FloatOff = flt_off_sw[i]) ) {
+            if ( Outflows[i].FloatOff ) {
                 if ( (outl_elvs[i] > (crest_elev-base_elev)) || (outl_elvs[i] < 0.0) ) {
                     fprintf(stderr,
                     "Floating outflow (%124lf) above surface or deeper than lake depth (%12.4lf)\n",
