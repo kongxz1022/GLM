@@ -6,8 +6,10 @@ cd ${CURDIR}
 make distclean
 
 if [ `uname -s` == "Linux" ] ; then
-  cd ${CURDIR}
-  fakeroot make -f debian/rules clean
+  if [ -f /etc/debian_version ] ; then
+    cd ${CURDIR}
+    fakeroot make -f debian/rules clean
+  fi
 fi
 if [ `uname -s` == "Darwin" ] ; then
   /bin/rm -rf ${CURDIR}/macos/glm.app

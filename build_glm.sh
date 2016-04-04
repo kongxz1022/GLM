@@ -103,14 +103,16 @@ cd ${CURDIR}
 if [ "$OSTYPE" = "Linux" ] ; then
   VERSION=`grep GLM_VERSION src/glm.h | cut -f2 -d\"`
   echo glm version $VERSION
-  VERSDEB=`head -1 debian/changelog | cut -f2 -d\( | cut -f1 -d-`
-  echo debian version $VERSDEB
-  if [ "$VERSION" != "$VERSDEB" ] ; then
-     echo updating debian version
-     dch --newversion ${VERSION}-0 "new version ${VERSION}"
-  fi
+  if [ -f /etc/debian_version ] ; then
+    VERSDEB=`head -1 debian/changelog | cut -f2 -d\( | cut -f1 -d-`
+    echo debian version $VERSDEB
+    if [ "$VERSION" != "$VERSDEB" ] ; then
+      echo updating debian version
+      dch --newversion ${VERSION}-0 "new version ${VERSION}"
+    fi
 
-  fakeroot make -f debian/rules binary || exit 1
+    fakeroot make -f debian/rules binary || exit 1
+  fi
 
   cd ${CURDIR}/win
   ${CURDIR}/vers.sh $VERSION
