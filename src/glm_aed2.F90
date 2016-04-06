@@ -1368,6 +1368,11 @@ SUBROUTINE aed2_write_glm(ncid,wlev,nlev,lvl,point_nlevs) BIND(C, name=_WQ_WRITE
 #ifdef PLOTS
                IF ( do_plots .AND. plot_id_d(d).GE.0 ) CALL put_glm_val(plot_id_d(d), cc_diag(1:wlev, d))
 #endif
+               DO j=1,point_nlevs
+                  IF (lvl(j) .GE. 0) THEN ; val_out = cc_diag(lvl(j)+1, d)
+                  ELSE                    ; val_out = missing     ; ENDIF
+                  CALL write_csv_point(j, tv%name, len_trim(tv%name), val_out, "", 0, last=last)
+               ENDDO
             ENDIF
          ELSE IF ( .NOT. tv%extern ) THEN
             IF ( tv%sheet ) THEN

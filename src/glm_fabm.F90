@@ -1131,7 +1131,12 @@ SUBROUTINE fabm_write_glm(ncid,wlev,nlev,lvl,point_nlevs) BIND(C, name=_WQ_WRITE
    DO n=1,ubound(model%info%diagnostic_variables,1)
       !# Store diagnostic variable values.
       CALL store_nc_array(ncid,model%info%diagnostic_variables(n)%externalid,XYZT_SHAPE,wlev,nlev,array=cc_diag(:, n))
-
+      DO i=1,point_nlevs
+         IF (lvl(i) .GE. 0) THEN ; val_out = cc_diag(lvl(i)+1, n)
+         ELSE                    ; val_out = missing     ; ENDIF
+         CALL write_csv_point(i,model%info%diagnostic_variables(n)%name,  &
+                             len_trim(model%info%diagnostic_variables(n)%name), val_out,"",0,last=last)
+      ENDDO
 #ifdef PLOTS
       IF ( do_plots .AND. plot_id_d(n).GE.0 ) &
          CALL put_glm_val(plot_id_d(n),cc_diag(1:wlev, n))
