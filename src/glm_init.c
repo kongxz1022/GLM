@@ -202,6 +202,7 @@ void init_glm(int *jstart, char *outp_dir, char *outp_fn, int *nsave)
     char          **O2name         = NULL;
     int             O2idx          = 0;
     AED_REAL       *target_temp    = NULL;
+    AED_REAL        min_lake_temp;
     LOGICAL         mix_withdraw;
     LOGICAL         coupl_oxy_sw;
     extern AED_REAL fac_range_upper;
@@ -385,6 +386,7 @@ void init_glm(int *jstart, char *outp_dir, char *outp_fn, int *nsave)
           { "O2name",            TYPE_STR|MASK_LIST,    &O2name            },
           { "O2idx",             TYPE_INT,              &O2idx             },
           { "target_temp",       TYPE_DOUBLE|MASK_LIST, &target_temp       },
+          { "min_lake_temp",     TYPE_DOUBLE,           &min_lake_temp     },
           { "fac_range_upper",   TYPE_DOUBLE,           &fac_range_upper   },
           { "fac_range_lower",   TYPE_DOUBLE,           &fac_range_lower   },
           { "mix_withdraw",      TYPE_BOOL,             &mix_withdraw      },
@@ -763,6 +765,7 @@ void init_glm(int *jstart, char *outp_dir, char *outp_fn, int *nsave)
     O2critdays = crit_O2_days;
     MIXwithdraw = mix_withdraw;
     COUPLoxy = coupl_oxy_sw;
+    MINlaketemp = min_lake_temp;
 
     if (withdrTemp_fl != NULL) open_withdrtemp_file(withdrTemp_fl, timefmt_o);
 
