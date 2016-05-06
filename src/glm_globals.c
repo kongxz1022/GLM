@@ -83,6 +83,7 @@ CLOGICAL MIXwithdraw = FALSE;
 CLOGICAL COUPLoxy = FALSE;
 AED_REAL WithdrawalTemp;
 AED_REAL fac_range_upper = -1, fac_range_lower = -1;
+AED_REAL MINlaketemp;
 
 //------------------------------------------------------------------------------
 
