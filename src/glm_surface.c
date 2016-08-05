@@ -534,7 +534,7 @@ void do_surface_thermodynamics(int jday, int iclock, int LWModel,
             //I think this might be wrong, resulting value seems way too small, even for ice
             //Q_latentheat = -3.9 * MetData.WindSpeed * (SatVap_surface - MetData.SatVapDef);
             //# Q_latentheat [W/m2] = CE * rho_air * latent heat * psychro const / air_presssure * windspeed * VPD
-            Q_latentheat = -CE * rho_air * Latent_Heat_Evap * (0.622/p_atm) * WindSp * (SatVap_surface - MetData.SatVapDef);
+            Q_latentheat = -CE * rho_air * Latent_Heat_Evap * (0.622/p_atm) * MetData.WindSpeed * (SatVap_surface - MetData.SatVapDef);
             if (Q_latentheat > 0.0) Q_latentheat = 0.0;
 
             //LCB: changed sign of Q_sensible heat to match that of no ice
