@@ -79,11 +79,11 @@ AED_REAL Q_longwave;      // Net longwave heat flux
 
 static AED_REAL  Q_iceout;     // heat flux out of snow/ice surface
 static AED_REAL  Q_icewater;   // heat flux across water/ice interface
-static AED_REAL  Q_surflayer;     // heat flux through the water surface
-static AED_REAL  Q_watermol;     // heat flux through water due to molecular conductivity
-static AED_REAL  Q_underflow;     // heat flux through water due to flow under the ice
-static AED_REAL  Q_icemet;  // the heat flux at the surface due to meteorological forcing
-//static AED_REAL  U_FLOW;  // the velocity of the underflow
+static AED_REAL  Q_surflayer;  // heat flux through the water surface
+static AED_REAL  Q_watermol;   // heat flux through water due to molecular conductivity
+static AED_REAL  Q_underflow;  // heat flux through water due to flow under the ice
+static AED_REAL  Q_icemet;     // the heat flux at the surface due to meteorological forcing
+//static AED_REAL  U_FLOW;     // the velocity of the underflow
 
 
 
