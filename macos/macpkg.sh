@@ -30,21 +30,33 @@ cp glm_files.icns  glm.app/Contents/Resources
 cp InfoPlist.strings glm.app/Contents/Resources/English.lproj
 
 # find_libs path bin
+echo "BASEDIR is ${BASEDIR}" 1>&2
 find_libs () {
+   echo "*** find_libs \"$1\" \"$2\"" 1>&2
    L2=`otool -L glm.app/Contents/MacOS/$2 | grep \/${BASEDIR}\/$1 | cut -d\  -f1 | grep -o '[^/]*$'`
    LIST=""
    while [ "$L2" != "$LIST" ] ; do
       LIST=$L2
       for i in $LIST ; do
+         xx=`find \/${BASEDIR} -name $i 2> /dev/null`
+         echo "Looking for \"$i\" ($xx)" 1>&2
          if [ ! -f glm.app/Contents/MacOS/$i ] ; then
-            cp /${BASEDIR}/local/lib/$i glm.app/Contents/MacOS
+            if [ "$xx" = "" ] ; then
+               cp /${BASEDIR}/local/lib/$i glm.app/Contents/MacOS
+            else
+               cp $xx glm.app/Contents/MacOS
+            fi
             if [ $? != 0 ] ; then
                echo " ####### Failed to copy $i" 1>&2
             else
                chmod +w glm.app/Contents/MacOS/$i
             fi
          fi
-         NLST=`otool -L /${BASEDIR}/$1/lib/$i | grep -v $i | grep \/${BASEDIR}\/$1 | cut -d\  -f1 | grep -o '[^/]*$'`
+         if [ "$xx" = "" ] ; then
+            NLST=`otool -L /${BASEDIR}/$1/lib/$i | grep -v $i | grep \/${BASEDIR}\/$1 | cut -d\  -f1 | grep -o '[^/]*$'`
+         else
+            NLST=`otool -L $xx | grep -v $i | grep \/${BASEDIR}\/$1 | cut -d\  -f1 | grep -o '[^/]*$'`
+         fi
          for j in $NLST ; do
             echo $L2 | grep $j > /dev/null 2>&1
             if [ $? != 0 ] ; then
@@ -61,7 +73,7 @@ find_libs () {
 LIBS1=`find_libs local glm`
 #LIBS2=`find_libs intel glm`
 
-if [ $FORTRAN_COMPILER = IFORT ] ; then
+if [ "$FORTRAN_COMPILER" = "IFORT" ] ; then
   PATH2=/opt/intel/lib
   PATH3=
   LIBS2="libifcore.dylib libsvml.dylib libimf.dylib libintlc.dylib"
@@ -77,9 +89,12 @@ echo "LIBS2 = $LIBS2"
 # These general libraries
 for i in $LIBS1 ; do
    echo "*** Configuring : $i ***"
-   cp /${BASEDIR}/local/lib/$i glm.app/Contents/MacOS
+   xx=`find /${BASEDIR} -name $i 2> /dev/null`
+   #cp /${BASEDIR}/local/lib/$i glm.app/Contents/MacOS
+   cp $xx glm.app/Contents/MacOS
    install_name_tool -id $i glm.app/Contents/MacOS/$i
-   install_name_tool -change /${BASEDIR}/local/lib/$i '@executable_path/'$i glm.app/Contents/MacOS/glm
+   #install_name_tool -change /${BASEDIR}/local/lib/$i '@executable_path/'$i glm.app/Contents/MacOS/glm
+   install_name_tool -change $xx '@executable_path/'$i glm.app/Contents/MacOS/glm
    if [ "${BASEDIR}" = "usr" ] ; then
       # This is probably a HOMEBREW setup, so there might be references into the Cellar
       NLST=`otool -L glm.app/Contents/MacOS/$i | grep \/${BASEDIR}\/local/Cellar | cut -d\  -f1`
@@ -101,10 +116,12 @@ done
 # now update these paths in the libraries as well
 for j in $LIBS1 $LIBS2 ; do
    for i in $LIBS1 ; do
+      #xx=`find /${BASEDIR} -name $i 2> /dev/null`
       install_name_tool -change /${BASEDIR}/local/lib/$i '@executable_path/'$i glm.app/Contents/MacOS/$j
    done
 
    for i in $LIBS2 ; do
+      #xx=`find /${BASEDIR} -name $i 2> /dev/null`
       install_name_tool -change ${PATH3}$i '@executable_path/'$i glm.app/Contents/MacOS/$j
    done
 done
