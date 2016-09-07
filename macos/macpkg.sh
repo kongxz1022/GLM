@@ -110,28 +110,40 @@ done
 for i in $LIBS2 ; do
    cp $PATH2/$i glm.app/Contents/MacOS
 # These are redundant since it seems intel fortran dylibs exclude the path from their names
-#  install_name_tool -id $i glm.app/Contents/MacOS/$i
-#  install_name_tool -change ${PATH3}$i '@executable_path/'$i glm.app/Contents/MacOS/glm
+   install_name_tool -id $i glm.app/Contents/MacOS/$i
+   install_name_tool -change ${PATH3}$i '@executable_path/'$i glm.app/Contents/MacOS/glm
 done
 
 
 # now update these paths in the libraries as well
 export LIBS=`\ls glm.app/Contents/MacOS/ | grep dylib`
+echo "======================================================================================"
+echo "Now checking libs for dependancies"
+echo "LIBS=$LIBS"
 
 for file in $LIBS ; do
+  echo "********** $file"
+
   L2=`otool -L glm.app/Contents/MacOS/$file | grep \/${BASEDIR}\/local | cut -d\  -f1`
 
   for j in $L2 ; do
     lib=`echo $j | grep -o '[^/]*$'`
-    echo "********** $file : $j ($lib)"
+    #echo "********** $file : $j ($lib)"
     xx=`find /${BASEDIR} -name $lib 2> /dev/null`
     if [ "$xx" != "" ] ; then
-      echo '****' install_name_tool -change $xx '@executable_path/'$lib glm.app/Contents/MacOS/$file
+      echo ' YYYY' install_name_tool -change $xx '@executable_path/'$lib glm.app/Contents/MacOS/$file
       install_name_tool -change $xx '@executable_path/'$lib glm.app/Contents/MacOS/$file
     fi
   done
-done
 
+  for j in $LIBS2 ; do
+    xx=`otool -L glm.app/Contents/MacOS/$file | grep $j`
+    if [ "$xx" != "" ] ; then
+      echo ' XXXX' install_name_tool -change $j '@executable_path/'$j glm.app/Contents/MacOS/$file
+      install_name_tool -change $j '@executable_path/'$j glm.app/Contents/MacOS/$file
+    fi
+  done
+done
 
 # ln -s glm.app/Contents/MacOS/glm glm
 zip -r glm_${VERSION}_macos.zip glm.app # glm
