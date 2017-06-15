@@ -79,11 +79,11 @@ AED_REAL Q_longwave;      // Net longwave heat flux
 
 static AED_REAL  Q_iceout;     // heat flux out of snow/ice surface
 static AED_REAL  Q_icewater;   // heat flux across water/ice interface
-static AED_REAL  Q_surflayer;     // heat flux through the water surface
-static AED_REAL  Q_watermol;     // heat flux through water due to molecular conductivity
-static AED_REAL  Q_underflow;     // heat flux through water due to flow under the ice
-static AED_REAL  Q_icemet;  // the heat flux at the surface due to meteorological forcing
-//static AED_REAL  U_FLOW;  // the velocity of the underflow
+static AED_REAL  Q_surflayer;  // heat flux through the water surface
+static AED_REAL  Q_watermol;   // heat flux through water due to molecular conductivity
+static AED_REAL  Q_underflow;  // heat flux through water due to flow under the ice
+static AED_REAL  Q_icemet;     // the heat flux at the surface due to meteorological forcing
+//static AED_REAL  U_FLOW;     // the velocity of the underflow
 
 
 
@@ -494,11 +494,11 @@ void do_surface_thermodynamics(int jday, int iclock, int LWModel,
                     break;
                 case 3:
                     // Brutsaert (1975)
-                    eps_star = (1.0 + 0.275*CloudCover) * 0.642 * pow(MetData.SatVapDef/(MetData.AirTemp+Kelvin), 1/7) ;
+                    eps_star = (1.0 + 0.275*CloudCover) * 1.24 * pow(MetData.SatVapDef/(MetData.AirTemp+Kelvin), 1.0/7.0) ;
                     break;
                 case 4:
                     // Yajima 2014 - Tono Dam
-                    eps_star = (1.0 - pow(CloudCover, 2.796) ) * 0.642 * pow(MetData.SatVapDef/(MetData.AirTemp+Kelvin), 1/7) +
+                    eps_star = (1.0 - pow(CloudCover, 2.796) ) * 1.24 * pow(MetData.SatVapDef/(MetData.AirTemp+Kelvin), 1.0/7.0) +
                                                            0.955 * pow(CloudCover, 2.796) ;
                     break;
             }
@@ -847,7 +847,7 @@ void do_surface_thermodynamics(int jday, int iclock, int LWModel,
         // Add snow directly to surface layer height if there is no ice.
         // If there is ice, snow will be handled in the next block
         // Use 1:10 rule for snow water equivalent (Any better out there??)
-        Lake[surfLayer].Height += (MetData.Snow * Lake[surfLayer].LayerArea * (1/10) * (noSecs / SecsPerDay));
+        Lake[surfLayer].Height += (MetData.Snow * Lake[surfLayer].LayerArea * (1.0/10.0) * (noSecs / SecsPerDay));
         //SurfData.dailySnow += (MetData.Snow * Lake[surfLayer].LayerArea * (1.0/10.0) * (noSecs / SecsPerDay));
 
         recalc_surface_salt();
